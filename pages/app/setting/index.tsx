@@ -15,13 +15,13 @@ import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 
 import Drawer from '@mui/material/Drawer';
-import { MainListItem, secondaryListItems } from '../../../components/listItems';
+import { MainListItem, SecondaryListItems } from '../../../components/listItems';
 
 import Fab from '@mui/material/Fab';
 import EditIcon from '@mui/icons-material/Edit';
 import { Chip, Container, FormControl, InputLabel, ListItem, ListItemText, ListSubheader, MenuItem, Select, SelectChangeEvent, Stack, Tab, Tabs } from '@mui/material';
 
-
+import { useSupabaseClient } from '@supabase/auth-helpers-react'
 
 function Copyright(props: any) {
     return (
@@ -54,12 +54,26 @@ const AppBar = styled(MuiAppBar, {
 const defaultTheme = createTheme();
 
 export default function Dashboard() {
+    const supabaseClient = useSupabaseClient()
+
     const [open, setOpen] = React.useState(false);
     const [openDialog, setOpenDialog] = React.useState(false);
     const toggleDrawer = () => {
         setOpen(!open);
     };
+    const [data, setData]: React.SetStateAction<any> = React.useState([])
 
+    React.useEffect(() => {
+        async function loadData() {
+            const { data } = await supabaseClient.from('category').select('*')
+            console.log(data)
+            setData(data)
+        }
+        // Only run query once user is logged in.
+        loadData()
+    }, [])
+
+    if (data.length == 0) return <></>
     return (
         <ThemeProvider theme={defaultTheme}>
             <Box sx={{ display: 'flex' }}>
@@ -114,9 +128,7 @@ export default function Dashboard() {
                     <Divider />
                     <MainListItem />
                     <Divider />
-                    <List style={{ width: "300px" }} >
-                        {secondaryListItems}
-                    </List>
+                    <SecondaryListItems />
                 </Drawer>
                 <Box
                     component="main"
@@ -132,7 +144,7 @@ export default function Dashboard() {
                 >
                     <Toolbar />
                     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-                        <List sx={{mb:15}}>
+                        <List sx={{ mb: 15 }}>
                             <ListSubheader
                                 sx={{
                                     backgroundColor: (theme) =>
@@ -143,107 +155,29 @@ export default function Dashboard() {
                             >
                                 Kategori
                             </ListSubheader>
-                            <ListItem secondaryAction={<IconButton aria-label="delete">
-                                <EditIcon/>
-                            </IconButton>}>
-                                <ListItemText
-                                    primary="Makan"
-                                    secondary={
-                                        <Stack direction="column" spacing={1}>
-                                            <span>Kategori: </span>
 
-                                            <Stack direction="row" spacing={1}>
-                                                <Chip color='error' label="Pengeluaran" /><Chip color='primary' label="$" />
-                                            </Stack>
-                                        </Stack>
-                                    }
-                                />
-                            </ListItem>
-                            <Divider />
-                            <ListItem secondaryAction={<IconButton aria-label="delete">
-                                <EditIcon/>
-                            </IconButton>}>
-                                <ListItemText
-                                    primary="Ngemil"
-                                    secondary={
-                                        <Stack direction="column" spacing={1}>
-                                            <span>Kategori: </span>
+                            {
+                                data.map((category: any) => {
+                                    return (
+                                        <ListItem secondaryAction={<IconButton aria-label="delete">
+                                            <EditIcon />
+                                        </IconButton>}>
+                                            <ListItemText
+                                                primary={`${category.name}`}
+                                                secondary={
+                                                    <Stack direction="column" spacing={1}>
+                                                        <span>Kategori: </span>
 
-                                            <Stack direction="row" spacing={1}>
-                                                <Chip color='error' label="Pengeluaran" /><Chip color='primary' label="$" />
-                                            </Stack>
-                                        </Stack>
-                                    }
-                                />
-                            </ListItem>
-                            <Divider />
-                            <ListItem secondaryAction={<IconButton aria-label="delete">
-                                <EditIcon/>
-                            </IconButton>}>
-                                <ListItemText
-                                    primary="Makan"
-                                    secondary={
-                                        <Stack direction="column" spacing={1}>
-                                            <span>Kategori: </span>
-
-                                            <Stack direction="row" spacing={1}>
-                                                <Chip color='error' label="Pengeluaran" /><Chip color='primary' label="$" />
-                                            </Stack>
-                                        </Stack>
-                                    }
-                                />
-                            </ListItem>
-                            <Divider />
-                            <ListItem secondaryAction={<IconButton aria-label="delete">
-                                <EditIcon/>
-                            </IconButton>}>
-                                <ListItemText
-                                    primary="Ngemil"
-                                    secondary={
-                                        <Stack direction="column" spacing={1}>
-                                            <span>Kategori: </span>
-
-                                            <Stack direction="row" spacing={1}>
-                                                <Chip color='error' label="Pengeluaran" /><Chip color='primary' label="$" />
-                                            </Stack>
-                                        </Stack>
-                                    }
-                                />
-                            </ListItem>
-                            <Divider />
-                            <ListItem secondaryAction={<IconButton aria-label="delete">
-                                <EditIcon/>
-                            </IconButton>}>
-                                <ListItemText
-                                    primary="Bucin"
-                                    secondary={
-                                        <Stack direction="column" spacing={1}>
-                                            <span>Kategori: </span>
-
-                                            <Stack direction="row" spacing={1}>
-                                                <Chip color='error' label="Pengeluaran" /><Chip color='primary' label="$" />
-                                            </Stack>
-                                        </Stack>
-                                    }
-                                />
-                            </ListItem>
-                            <Divider />
-                            <ListItem secondaryAction={<IconButton aria-label="delete">
-                                <EditIcon/>
-                            </IconButton>}>
-                                <ListItemText
-                                    primary="Nongkrong"
-                                    secondary={
-                                        <Stack direction="column" spacing={1}>
-                                            <span>Kategori: </span>
-
-                                            <Stack direction="row" spacing={1}>
-                                                <Chip color='error' label="Pengeluaran" /><Chip color='primary' label="$" />
-                                            </Stack>
-                                        </Stack>
-                                    }
-                                />
-                            </ListItem>
+                                                        <Stack direction="row" spacing={1}>
+                                                            <Chip color={category.type == 'Pengeluaran' ? 'error' : 'success'} label={`${category.type}`} /><Chip color='primary' label={`${category.priority}`} />
+                                                        </Stack>
+                                                    </Stack>
+                                                }
+                                            />
+                                        </ListItem>
+                                    )
+                                })
+                            }
 
                         </List>
                         <Box sx={{ '& > :not(style)': { m: 1 } }}>
@@ -279,7 +213,7 @@ export function FormDialog({ openDialog, setOpenDialog }: any) {
     };
     return (
         <div>
-            
+
             <Dialog open={openDialog} onClose={handleClose}>
                 <DialogTitle>New Transaction</DialogTitle>
                 <DialogContent>

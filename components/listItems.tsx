@@ -9,6 +9,7 @@ import ReceiptIcon from '@mui/icons-material/Receipt';
 import TuneIcon from '@mui/icons-material/Tune';
 import { useRouter } from 'next/router';
 import { List } from '@mui/material';
+import { useSupabaseClient } from '@supabase/auth-helpers-react';
 
 export function MainListItem() {
   const router = useRouter()
@@ -42,13 +43,18 @@ export function MainListItem() {
     </List>
   )
 }
-export const secondaryListItems = (
-  <React.Fragment>
-    <ListItemButton>
-      <ListItemIcon>
-        <LogoutIcon />
-      </ListItemIcon>
-      <ListItemText primary="Logout" />
-    </ListItemButton>
-  </React.Fragment>
-);
+export function SecondaryListItems() {
+  const supabaseClient = useSupabaseClient()  
+  const router = useRouter()
+  return (
+    <List style={{ width: "300px" }} >
+      <ListItemButton>
+        <ListItemIcon>
+          <LogoutIcon />
+        </ListItemIcon>
+        <ListItemText onClick={() => supabaseClient.auth.signOut().then((res)=> router.push('/auth/login'))} primary="Logout" />
+      </ListItemButton>
+
+    </List>
+  )
+};

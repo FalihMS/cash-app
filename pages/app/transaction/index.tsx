@@ -15,13 +15,13 @@ import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 
 import Drawer from '@mui/material/Drawer';
-import { MainListItem, secondaryListItems } from '../../../components/listItems';
+import { MainListItem, SecondaryListItems } from '../../../components/listItems';
 
 import Fab from '@mui/material/Fab';
 import EditIcon from '@mui/icons-material/Edit';
 import { Container, FormControl, InputLabel, ListItem, ListItemText, ListSubheader, MenuItem, Select, SelectChangeEvent, Tab, Tabs } from '@mui/material';
 
-
+import { useSupabaseClient } from '@supabase/auth-helpers-react'
 
 function Copyright(props: any) {
     return (
@@ -35,6 +35,11 @@ function Copyright(props: any) {
         </Typography>
     );
 }
+
+let USDollar = new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+});
 
 interface AppBarProps extends MuiAppBarProps {
     open?: boolean;
@@ -50,15 +55,36 @@ const AppBar = styled(MuiAppBar, {
 
 }));
 
+function getWeekOfMonth(date: Date) {
+    let adjustedDate = date.getDate()+ date.getDay();
+    let prefixes = ['0', '1', '2', '3', '4', '5'];
+    return (parseInt(prefixes[0 | adjustedDate / 7])+1);
+}
+
 // TODO remove, this demo shouldn't need to reset the theme.
 const defaultTheme = createTheme();
 
 export default function Dashboard() {
+    
+    const supabaseClient = useSupabaseClient()
     const [open, setOpen] = React.useState(false);
     const [openDialog, setOpenDialog] = React.useState(false);
     const toggleDrawer = () => {
         setOpen(!open);
     };
+
+    const [data, setData]: React.SetStateAction<any> = React.useState([])
+
+    React.useEffect(() => {
+        async function loadData() {
+            const { data } = await supabaseClient.from('transaction').select('created_at, kategori (name, type), deskripsi, total').order('created_at', { ascending: true })
+            setData(data)
+        }
+        // Only run query once user is logged in.
+        loadData()
+    }, [])
+
+    if (data == null) return <></>
 
     return (
         <ThemeProvider theme={defaultTheme}>
@@ -114,9 +140,7 @@ export default function Dashboard() {
                     <Divider />
                     <MainListItem />
                     <Divider />
-                    <List style={{ width: "300px" }} >
-                        {secondaryListItems}
-                    </List>
+                        <SecondaryListItems />
                 </Drawer>
                 <Box
                     component="main"
@@ -141,101 +165,24 @@ export default function Dashboard() {
                                             : theme.palette.grey[900],
                                 }}
                             >
-                                Week 1
+                                Transaction List
                             </ListSubheader>
-                            <ListItem secondaryAction={<Typography color={'green'}>IDR 100.000</Typography>}>
-                                <ListItemText primary="Inbox" secondary="Kategori A" />
-                            </ListItem>
-                            <Divider />
-                            <ListItem secondaryAction={<Typography color={'red'}>IDR 100.000</Typography>}>
-                                <ListItemText primary="Drafts" secondary="Kategori A" />
-                            </ListItem>
-                            <Divider />
-                            <ListItem secondaryAction={<Typography color={'green'}>IDR 100.000</Typography>}>
-                                <ListItemText primary="Inbox" secondary="Kategori A" />
-                            </ListItem>
-                            <Divider />
-                            <ListItem secondaryAction={<Typography color={'green'}>IDR 100.000</Typography>}>
-                                <ListItemText primary="Drafts" secondary="Kategori A" />
-                            </ListItem>
-                            <Divider />
-                            <ListItem secondaryAction={<Typography color={'red'}>IDR 100.000</Typography>}>
-                                <ListItemText primary="Inbox" secondary="Kategori A" />
-                            </ListItem>
-                            <ListSubheader
-                                sx={{
-                                    backgroundColor: (theme) =>
-                                        theme.palette.mode === 'light'
-                                            ? theme.palette.grey[100]
-                                            : theme.palette.grey[900],
-                                }}
-                            >
-                                Week 2
-                                <Divider />
-                            </ListSubheader>
-                            <ListItem secondaryAction={<Typography color={'green'}>IDR 100.000</Typography>}>
-                                <ListItemText primary="Drafts" secondary="Kategori A" />
-                            </ListItem>
-                            <Divider />
-                            <ListItem secondaryAction={<Typography color={'green'}>IDR 100.000</Typography>}>
-                                <ListItemText primary="Inbox" secondary="Kategori A" />
-                            </ListItem>
-                            <Divider />
-                            <ListItem secondaryAction={<Typography color={'red'}>IDR 100.000</Typography>}>
-                                <ListItemText primary="Drafts" secondary="Kategori A" />
-                            </ListItem>
-                            <Divider />
-                            <ListItem secondaryAction={<Typography color={'green'}>IDR 100.000</Typography>}>
-                                <ListItemText primary="Inbox" secondary="Kategori A" />
-                            </ListItem>
-                            <Divider />
-                            <ListItem secondaryAction={<Typography color={'green'}>IDR 100.000</Typography>}>
-                                <ListItemText primary="Drafts" secondary="Kategori A" />
-                            </ListItem>
-                            <ListSubheader
-                                sx={{
-                                    backgroundColor: (theme) =>
-                                        theme.palette.mode === 'light'
-                                            ? theme.palette.grey[100]
-                                            : theme.palette.grey[900],
-                                }}
-                            >
-                                Week 3
-                            </ListSubheader>
-                            <Divider />
-                            <ListItem secondaryAction={<Typography color={'red'}>IDR 100.000</Typography>}>
-                                <ListItemText primary="Inbox" secondary="Kategori A" />
-                            </ListItem>
-                            <Divider />
-                            <ListItem secondaryAction={<Typography color={'red'}>IDR 100.000</Typography>}>
-                                <ListItemText primary="Drafts" secondary="Kategori A" />
-                            </ListItem>
-                            <Divider />
-                            <ListItem secondaryAction={<Typography color={'green'}>IDR 100.000</Typography>}>
-                                <ListItemText primary="Inbox" secondary="Kategori A" />
-                            </ListItem>
-                            <Divider />
-                            <ListItem secondaryAction={<Typography color={'green'}>IDR 100.000</Typography>}>
-                                <ListItemText primary="Drafts" secondary="Kategori A" />
-                            </ListItem>
-                            <Divider />
-                            <ListItem secondaryAction={<Typography color={'red'}>IDR 100.000</Typography>}>
-                                <ListItemText primary="Inbox" secondary="Kategori A" />
-                            </ListItem>
-                            <ListSubheader
-                                sx={{
-                                    backgroundColor: (theme) =>
-                                        theme.palette.mode === 'light'
-                                            ? theme.palette.grey[100]
-                                            : theme.palette.grey[900],
-                                }}
-                            >
-                                Week 4
-                            </ListSubheader>
-                            <Divider />
-                            <ListItem secondaryAction={<Typography color={'red'}>IDR 100.000</Typography>}>
-                                <ListItemText primary="Drafts" secondary="Kategori A" />
-                            </ListItem>
+                            {
+                                data.map((transaction: any)=> (
+                                    <>
+                                        <ListItem secondaryAction={<Typography color={transaction.kategori.type == 'Pemasukan' ? 'green' : 'red' }>{USDollar.format(transaction.total)}</Typography>}>
+                                            <ListItemText 
+                                                primary={moment(transaction.created_at).format('DD/MM/YYYY, h:mm:ss a')} 
+                                                secondary={
+                                                    <>
+                                                        <p>{`${transaction.deskripsi} (${transaction.kategori.name})`}</p>
+                                                    </>
+                                                } />
+                                        </ListItem>
+                                        <Divider />
+                                    </>
+                                ))
+                            }
                         </List>
                         <Box sx={{ '& > :not(style)': { m: 1 } }}>
                             <Fab onClick={() => setOpenDialog(true)} color='primary' style={{ margin: 0, top: 'auto', right: '1.5rem', bottom: '2.5rem', left: 'auto', position: 'fixed', }} variant="extended">
@@ -257,6 +204,7 @@ import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
+import moment from 'moment';
 
 export function FormDialog({ openDialog, setOpenDialog }: any) {
     const [age, setAge] = React.useState('');
