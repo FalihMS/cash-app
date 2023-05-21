@@ -159,7 +159,7 @@ export default function Dashboard() {
                             {
                                 data.map((category: any) => {
                                     return (
-                                        <ListItem secondaryAction={<IconButton aria-label="delete">
+                                        <ListItem key={`${category.id}`} secondaryAction={<IconButton aria-label="delete">
                                             <EditIcon />
                                         </IconButton>}>
                                             <ListItemText

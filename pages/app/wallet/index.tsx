@@ -14,7 +14,7 @@ import Link from '@mui/material/Link';
 import MenuIcon from '@mui/icons-material/Menu';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import NotificationsIcon from '@mui/icons-material/Notifications';
-import { MainListItem,  secondaryListItems } from '../../../components/listItems';
+import { MainListItem,  SecondaryListItems } from '../../../components/listItems';
 
 import Drawer from '@mui/material/Drawer';
 
@@ -104,7 +104,7 @@ export default function Setting() {
                     <MainListItem />
                     <Divider />
                     <List  style={{ width : "300px"}} >
-                        {secondaryListItems}
+                        <SecondaryListItems />
                     </List>
                 </Drawer>
                 <Box
