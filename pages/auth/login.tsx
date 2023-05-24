@@ -15,6 +15,10 @@ import { useSupabaseClient } from '@supabase/auth-helpers-react';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
 import { useRouter } from 'next/router';
+import InputAdornment from '@mui/material/InputAdornment';
+import IconButton from '@mui/material/IconButton';
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
 
 export default function SignIn() {
 
@@ -22,6 +26,8 @@ export default function SignIn() {
   const router = useRouter()
   
   const [open, setOpen] = React.useState(false)
+  const [info, setInfo] = React.useState('')
+  const [showPassword, setShowPassword] = React.useState(false);
   
   const validationSchema = yup.object({
     email: yup
@@ -55,9 +61,16 @@ export default function SignIn() {
     validateOnChange:false,
     validationSchema: validationSchema,
     onSubmit: values => {
+      openToast('Authentication Success')
       router.push('/app/dashboard')
     },
   });
+
+  
+  function openToast(errorDesc: string){
+    setInfo(errorDesc)
+    setOpen(true)
+  }
 
   function handleClose(){
     setOpen(false)
@@ -92,13 +105,27 @@ export default function SignIn() {
             autoFocus
           />
           <TextField
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    aria-label="toggle password visibility"
+                    onClick={() => setShowPassword((show) => !show)}
+                    onMouseDown={(e) => e.preventDefault()}
+                    edge="end"
+                  >
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
             margin="normal"
             required
             fullWidth
             name="password"
             label="Password"
-            type="password"
             id="password"
+            type={showPassword ? 'text' : 'password'}
             onChange={formik.handleChange}
             value={formik.values.password}
 
@@ -120,20 +147,20 @@ export default function SignIn() {
           <Grid container>
             <Grid item xs>
               <Link href="#" variant="body2">
-                Forgot password
+                
               </Link>
             </Grid>
             <Grid item>
-              <Link href="#" variant="body2">
+              <Link href="register" variant="body2">
                 {"Create New Account"}
               </Link>
             </Grid>
           </Grid>
         </Box>
-      </Box>
-      <Snackbar anchorOrigin={{ vertical: 'top', horizontal: 'center' }} open={open} autoHideDuration={4000} onClose={handleClose}>
-        <Alert onClose={handleClose} severity="error" sx={{ width: '100%' }}>
-          Invalid login credentials
+      </Box>      
+      <Snackbar anchorOrigin={{ vertical: 'top', horizontal: 'center' }} open={open} autoHideDuration={4000} onClose={()=> setOpen(false)}>
+        <Alert onClose={()=> setOpen(false)} severity="success" sx={{ width: '100%' }}>
+          {info}
         </Alert>
       </Snackbar>
     </Container>

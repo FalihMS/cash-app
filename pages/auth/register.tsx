@@ -6,20 +6,27 @@ import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
-import { ErrorMessage, connect, getIn, useFormik } from 'formik';
+import { useFormik } from 'formik';
 import * as yup from 'yup';
 import { useSupabaseClient } from '@supabase/auth-helpers-react';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
 import { useRouter } from 'next/router';
+import InputAdornment from '@mui/material/InputAdornment';
+import IconButton from '@mui/material/IconButton';
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
 
 export default function SignUp() {
 
   const supabaseClient = useSupabaseClient()
   const router = useRouter()
+
   
   const [open, setOpen] = React.useState(false)
-  const [error, setError] = React.useState('')
+  const [info, setInfo] = React.useState('')
+  const [showPassword, setShowPassword] = React.useState(false);
+  const [showRetypePassword, setShowRetypePassword] = React.useState(false);
   
   const validationSchema = yup.object({
     name: yup
@@ -53,7 +60,7 @@ export default function SignUp() {
     password: yup
       .string()
       .required('Password cannot be empty')
-      .matches(/^[A-z0-9]+$/,'Password must be use Aphanumeric'),
+      .matches(/^(?=.*?\d)(?=.*?[a-zA-Z])[a-zA-Z\d]+$/,'Password must be use Aphanumeric'),
     retypePassword: yup
       .string()
       .required('Confirm password cannot be empty')
@@ -71,14 +78,16 @@ export default function SignUp() {
     validateOnChange:false,
     validationSchema: validationSchema,
     onSubmit: values => {
+      openToast('Register New User Success')
       router.push('/app/dashboard')
     },
   });
-  function openError(errorDesc: string){
-    setError(errorDesc)
+
+  function openToast(errorDesc: string){
+    setInfo(errorDesc)
     setOpen(true)
   }
-
+  
   function closeError(){
     setOpen(false)
   }
@@ -125,12 +134,26 @@ export default function SignUp() {
             autoFocus
           />
           <TextField
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    aria-label="toggle password visibility"
+                    onClick={() => setShowPassword((show) => !show)}
+                    onMouseDown={(e) => e.preventDefault()}
+                    edge="end"
+                  >
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
             margin="normal"
             required
             fullWidth
             name="password"
             label="Password"
-            type="password"
+            type={showPassword ? 'text' : 'password'}
             id="password"
             onChange={formik.handleChange}
             value={formik.values.password}
@@ -139,12 +162,26 @@ export default function SignUp() {
 
           />
           <TextField
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    aria-label="toggle password visibility"
+                    onClick={() => setShowRetypePassword((show) => !show)}
+                    onMouseDown={(e) => e.preventDefault()}
+                    edge="end"
+                  >
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
             margin="normal"
             required
             fullWidth
             name="retypePassword"
             label="Retype Password"
-            type="password"
+            type={showRetypePassword ? 'text' : 'password'}
             id="retypePassword"
             onChange={formik.handleChange}
             value={formik.values.retypePassword}
@@ -161,7 +198,7 @@ export default function SignUp() {
           </Button>
           <Grid container>
             <Grid item>
-              <Link href="#" variant="body2">
+              <Link href="login" variant="body2">
                 {"Already Have Account"}
               </Link>
             </Grid>
@@ -169,8 +206,8 @@ export default function SignUp() {
         </Box>
       </Box>
       <Snackbar anchorOrigin={{ vertical: 'top', horizontal: 'center' }} open={open} autoHideDuration={4000} onClose={closeError}>
-        <Alert onClose={closeError} severity="error" sx={{ width: '100%' }}>
-          {error}
+        <Alert onClose={closeError} severity="success" sx={{ width: '100%' }}>
+          {info}
         </Alert>
       </Snackbar>
     </Container>
