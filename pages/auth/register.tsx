@@ -6,7 +6,7 @@ import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
-import { useFormik } from 'formik';
+import { ErrorMessage, connect, getIn, useFormik } from 'formik';
 import * as yup from 'yup';
 import { useSupabaseClient } from '@supabase/auth-helpers-react';
 import Snackbar from '@mui/material/Snackbar';
@@ -19,6 +19,7 @@ export default function SignUp() {
   const router = useRouter()
   
   const [open, setOpen] = React.useState(false)
+  const [error, setError] = React.useState('')
   
   const validationSchema = yup.object({
     name: yup
@@ -28,7 +29,27 @@ export default function SignUp() {
     email: yup
       .string()
       .email('Email must be in valid format')
-      .required('Email cannot be empty'),
+      .required('Email cannot be empty')
+      .test('Unique Email', 'Email already in Use', function(){
+        return new Promise((resolve, reject)=>{
+          const { email, password, name } = this.parent
+          supabaseClient.auth.signUp(
+            {
+              email,
+              password,
+              options: {
+                data: {
+                  name,
+                }
+              }
+            }
+          )
+            .then(res => {
+              if (res.error) resolve(false)
+              else resolve(true)
+            })
+        })
+      }),
     password: yup
       .string()
       .required('Password cannot be empty')
@@ -47,28 +68,18 @@ export default function SignUp() {
       retypePassword:'',
     },
     validateOnBlur: false,
+    validateOnChange:false,
     validationSchema: validationSchema,
     onSubmit: values => {
-      const { email, password, name } = values
-      supabaseClient.auth.signUp(
-        {
-          email,
-          password,
-          options: {
-            data: {
-              name,
-            }
-          }
-        }
-      )
-        .then(res => {
-          if(res.error) setOpen(true)
-          else router.push('/app/dashboard')
-        })
+      router.push('/app/dashboard')
     },
   });
+  function openError(errorDesc: string){
+    setError(errorDesc)
+    setOpen(true)
+  }
 
-  function handleClose(){
+  function closeError(){
     setOpen(false)
   }
 
@@ -157,9 +168,9 @@ export default function SignUp() {
           </Grid>
         </Box>
       </Box>
-      <Snackbar anchorOrigin={{ vertical: 'top', horizontal: 'center' }} open={open} autoHideDuration={4000} onClose={handleClose}>
-        <Alert onClose={handleClose} severity="error" sx={{ width: '100%' }}>
-          Email Has been Used
+      <Snackbar anchorOrigin={{ vertical: 'top', horizontal: 'center' }} open={open} autoHideDuration={4000} onClose={closeError}>
+        <Alert onClose={closeError} severity="error" sx={{ width: '100%' }}>
+          {error}
         </Alert>
       </Snackbar>
     </Container>

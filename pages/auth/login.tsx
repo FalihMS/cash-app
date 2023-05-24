@@ -31,6 +31,19 @@ export default function SignIn() {
     password: yup
       .string()
       .required('Password is required')
+      .test('Invalid Credential', 'Invalid Username or Password, Failed to Sign In', function(){
+        return new Promise((resolve, reject) => {
+          const { email, password } = this.parent
+          supabaseClient.auth.signInWithPassword({
+            email,
+            password,
+          })
+            .then(res => {
+              if (res.error) resolve(false)
+              else resolve(true)
+            })
+        })
+      }),
   });
 
   const formik = useFormik({
@@ -39,17 +52,10 @@ export default function SignIn() {
       password: '',
     },
     validateOnBlur: false,
+    validateOnChange:false,
     validationSchema: validationSchema,
     onSubmit: values => {
-      const { email, password } = values
-      supabaseClient.auth.signInWithPassword({
-        email,
-        password,
-      })
-        .then(res => {
-          if(res.error) setOpen(true)
-          else router.push('/app/dashboard')
-        })
+      router.push('/app/dashboard')
     },
   });
 
