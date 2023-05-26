@@ -39,20 +39,10 @@ export default function SignUp() {
       .required('Email cannot be empty')
       .test('Unique Email', 'Email already in Use', function(){
         return new Promise((resolve, reject)=>{
-          const { email, password, name } = this.parent
-          supabaseClient.auth.signUp(
-            {
-              email,
-              password,
-              options: {
-                data: {
-                  name,
-                }
-              }
-            }
-          )
+          const { email } = this.parent
+          supabaseClient.from('user').select('email').eq('email', email)
             .then(res => {
-              if (res.error) resolve(false)
+              if (res.error || res.data.length != 0) resolve(false)
               else resolve(true)
             })
         })
@@ -78,8 +68,24 @@ export default function SignUp() {
     validateOnChange:false,
     validationSchema: validationSchema,
     onSubmit: values => {
-      openToast('Register New User Success')
-      router.push('/app/dashboard')
+      const { email, password, name } = values
+      supabaseClient.auth.signUp(
+        {
+          email,
+          password,
+          options: {
+            data: {
+              name,
+            }
+          }
+        }
+      ).then( res => {
+        if(res.error){}
+
+        openToast('Register New User Success')
+        router.push('/app/dashboard')
+      })
+      
     },
   });
 
@@ -194,7 +200,7 @@ export default function SignUp() {
             variant="contained"
             sx={{ mt: 3, mb: 2 }}
           >
-            Sign In
+            Sign Up
           </Button>
           <Grid container>
             <Grid item>
