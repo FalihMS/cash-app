@@ -1,68 +1,64 @@
-import * as React from 'react';
-import { styled, createTheme, ThemeProvider } from '@mui/material/styles';
-import CssBaseline from '@mui/material/CssBaseline';
+import React from "react";
+
+import AppShell from "../../../components/common/appShell";
+
 import Box from '@mui/material/Box';
-import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar';
-import Toolbar from '@mui/material/Toolbar';
 import List from '@mui/material/List';
-import Typography from '@mui/material/Typography';
-import Divider from '@mui/material/Divider';
 import IconButton from '@mui/material/IconButton';
-import Badge from '@mui/material/Badge';
-import Link from '@mui/material/Link';
-import MenuIcon from '@mui/icons-material/Menu';
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import NotificationsIcon from '@mui/icons-material/Notifications';
-
-import Drawer from '@mui/material/Drawer';
-import { MainListItem, SecondaryListItems } from '../../../components/listItems';
-
+import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
+import AddIcon from '@mui/icons-material/Add';
 import Fab from '@mui/material/Fab';
-import EditIcon from '@mui/icons-material/Edit';
-import { Chip, Container, FormControl, InputLabel, ListItem, ListItemText, ListSubheader, MenuItem, Select, SelectChangeEvent, Stack, Tab, Tabs } from '@mui/material';
 
 import { useSupabaseClient } from '@supabase/auth-helpers-react'
+import ListItem from "@mui/material/ListItem";
+import ListItemText from "@mui/material/ListItemText";
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogTitle from '@mui/material/DialogTitle';
+import FormControl from "@mui/material/FormControl";
+import InputLabel from "@mui/material/InputLabel";
+import Select, { SelectChangeEvent } from "@mui/material/Select";
+import MenuItem from "@mui/material/MenuItem";
 
-function Copyright(props: any) {
-    return (
-        <Typography variant="body2" color="text.secondary" align="center" {...props}>
-            {'Copyright © '}
-            <Link color="inherit" href="https://mui.com/">
-                Your Website
-            </Link>{' '}
-            {new Date().getFullYear()}
-            {'.'}
-        </Typography>
-    );
-}
+import * as yup from 'yup';
+import { useFormik } from 'formik';
+import FormHelperText from "@mui/material/FormHelperText";
 
-interface AppBarProps extends MuiAppBarProps {
-    open?: boolean;
-}
+export default function ProfilePage() {
 
-const AppBar = styled(MuiAppBar, {
-    shouldForwardProp: (prop) => prop !== 'open',
-})<AppBarProps>(({ theme, open }) => ({
-    transition: theme.transitions.create(['width', 'margin'], {
-        easing: theme.transitions.easing.sharp,
-        duration: theme.transitions.duration.leavingScreen,
-    }),
-
-}));
-
-// TODO remove, this demo shouldn't need to reset the theme.
-const defaultTheme = createTheme();
-
-export default function Dashboard() {
-    const supabaseClient = useSupabaseClient()
-
-    const [open, setOpen] = React.useState(false);
     const [openDialog, setOpenDialog] = React.useState(false);
-    const toggleDrawer = () => {
-        setOpen(!open);
-    };
-    const [data, setData]: React.SetStateAction<any> = React.useState([])
 
+    return (
+        <AppShell page={'Setting'}>
+            <PrimaryListItem />
+
+            <Box sx={{ '& > :not(style)': { m: 1 } }}>
+                <Fab onClick={() => setOpenDialog(true)} color='primary' style={{ margin: 0, top: 'auto', right: '1.5rem', bottom: '2.5rem', left: 'auto', position: 'fixed', }} variant="extended">
+                    <AddIcon sx={{ mr: 1 }} />
+                    Add Category
+                </Fab>
+            </Box>
+            <AddFormDialog openDialog={openDialog} setOpenDialog={setOpenDialog} />
+        </AppShell>
+    )
+}
+// Main List Item
+function PrimaryListItem({  }: any) {
+
+    const supabaseClient = useSupabaseClient()
+    const [data, setData]: React.SetStateAction<any> = React.useState([])
+    
+    const [value, setValue] = React.useState({
+        id: '',
+        priority: '',
+        type: '',
+        name: '',
+      });
+    const [openDialog, setOpenDialog] = React.useState(false);
     React.useEffect(() => {
         async function loadData() {
             const { data } = await supabaseClient.from('category').select('*')
@@ -73,192 +69,217 @@ export default function Dashboard() {
         loadData()
     }, [])
 
-    if (data.length == 0) return <></>
+    const openEditDialog = (key: any) => {
+        const {id, priority, type, name } = data[key]
+        setValue({id, priority, type, name,})
+        setOpenDialog(true)
+    }
     return (
-        <ThemeProvider theme={defaultTheme}>
-            <Box sx={{ display: 'flex' }}>
-                <CssBaseline />
-                <AppBar position="absolute" open={open}>
-                    <Toolbar
-                        sx={{
-                            pr: '24px', // keep right padding when drawer closed
-                        }}
-                    >
-                        <IconButton
-                            edge="start"
-                            color="inherit"
-                            aria-label="open drawer"
-                            onClick={toggleDrawer}
-                            sx={{
-                                marginRight: '36px',
-                                ...(open && { display: 'none' }),
-                            }}
-                        >
-                            <MenuIcon />
-                        </IconButton>
-                        <Typography
-                            component="h1"
-                            variant="h6"
-                            color="inherit"
-                            noWrap
-                            sx={{ flexGrow: 1 }}
-                        >
-                            Setting
-                        </Typography>
-                        <IconButton color="inherit">
-                            <Badge badgeContent={4} color="secondary">
-                                <NotificationsIcon />
-                            </Badge>
-                        </IconButton>
-                    </Toolbar>
-                </AppBar>
-                <Drawer anchor="left" variant="temporary" open={open} onClose={toggleDrawer}>
-                    <Toolbar
-                        sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'flex-end',
-                            px: [1],
-                        }}
-                    >
-                        <IconButton onClick={toggleDrawer}>
-                            <ChevronLeftIcon />
-                        </IconButton>
-                    </Toolbar>
-                    <Divider />
-                    <MainListItem />
-                    <Divider />
-                    <SecondaryListItems />
-                </Drawer>
-                <Box
-                    component="main"
-                    sx={{
-                        backgroundColor: (theme) =>
-                            theme.palette.mode === 'light'
-                                ? theme.palette.grey[100]
-                                : theme.palette.grey[900],
-                        flexGrow: 1,
-                        height: '100vh',
-                        overflow: 'auto',
-                    }}
-                >
-                    <Toolbar />
-                    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-                        <List sx={{ mb: 15 }}>
-                            <ListSubheader
-                                sx={{
-                                    backgroundColor: (theme) =>
-                                        theme.palette.mode === 'light'
-                                            ? theme.palette.grey[100]
-                                            : theme.palette.grey[900],
-                                }}
-                            >
-                                Kategori
-                            </ListSubheader>
+        <Box sx={{ mx: { md: '25px' } }}>
+            <List>
+                {
+                    data.map((item: any, key: any) => (
+                        <ListItem>
+                            <ListItemText primary={item.name} secondary={`Priority: ${item.priority}`} />
+                            <Box sx={{ mr: { sm: '5px', md: '15px' } }}>
+                                <IconButton onClick={(e) => openEditDialog(key)} edge="end" aria-label="delete" sx={{ mr: '5px' }}>
+                                    <EditOutlinedIcon />
+                                </IconButton>
+                                <IconButton edge="end" aria-label="delete">
+                                    <DeleteOutlineOutlinedIcon />
+                                </IconButton>
+                            </Box>
+                        </ListItem>
+                    ))
 
-                            {
-                                data.map((category: any) => {
-                                    return (
-                                        <ListItem key={`${category.id}`} secondaryAction={<IconButton aria-label="delete">
-                                            <EditIcon />
-                                        </IconButton>}>
-                                            <ListItemText
-                                                primary={`${category.name}`}
-                                                secondary={
-                                                    <Stack direction="column" spacing={1}>
-                                                        <span>Kategori: </span>
+                }
+            </List>
+            <EditFormDialog initialValue={value} openDialog={openDialog} setOpenDialog={setOpenDialog} />
 
-                                                        <Stack direction="row" spacing={1}>
-                                                            <Chip color={category.type == 'Pengeluaran' ? 'error' : 'success'} label={`${category.type}`} /><Chip color='primary' label={`${category.priority}`} />
-                                                        </Stack>
-                                                    </Stack>
-                                                }
-                                            />
-                                        </ListItem>
-                                    )
-                                })
-                            }
-
-                        </List>
-                        <Box sx={{ '& > :not(style)': { m: 1 } }}>
-                            <Fab onClick={() => setOpenDialog(true)} color='primary' style={{ margin: 0, top: 'auto', right: '1.5rem', bottom: '2.5rem', left: 'auto', position: 'fixed', }} variant="extended">
-                                <EditIcon sx={{ mr: 1 }} />
-                                New Category
-                            </Fab>
-                        </Box>
-                    </Container>
-                </Box>
-            </Box>
-            <FormDialog openDialog={openDialog} setOpenDialog={setOpenDialog} />
-        </ThemeProvider>
-    );
+        </Box>
+    )
 }
 
-import Button from '@mui/material/Button';
-import TextField from '@mui/material/TextField';
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
-import DialogTitle from '@mui/material/DialogTitle';
-
-export function FormDialog({ openDialog, setOpenDialog }: any) {
-    const [age, setAge] = React.useState('');
+export function AddFormDialog({ openDialog, setOpenDialog }: any) {
+    const [initVal, setInitVal] = React.useState({
+        priority: '',
+        type: '',
+        name: '',
+      })
     const handleClose = () => {
+        formik.resetForm()
         setOpenDialog(false);
     };
 
-    const handleChange = (event: SelectChangeEvent) => {
-        setAge(event.target.value as string);
-    };
-    return (
-        <div>
+    const validationSchema = yup.object({
+        type: yup
+          .string()
+          .required('Type cannot be empty'),
+        priority: yup
+          .string()
+          .required('Priority cannot be empty'),
+        name: yup
+          .string()
+          .required('Name cannot be empty'),
+      });
+    
+      const formik = useFormik({
+        initialValues: initVal,
+        validationSchema: validationSchema, 
+        onSubmit: values => {
+            console.log('passed')
+        },
+      });
 
-            <Dialog open={openDialog} onClose={handleClose}>
-                <DialogTitle>New Transaction</DialogTitle>
+    return (
+        <Dialog open={openDialog} onClose={handleClose} fullWidth maxWidth="xs">
+            <Box component="form" onSubmit={formik.handleSubmit} noValidate sx={{ mt: 1 }}>
+                <DialogTitle>New Category</DialogTitle>
                 <DialogContent>
-                    <FormControl fullWidth sx={{ my: 1 }}>
+                   <FormControl error={formik.touched.priority && Boolean(formik.errors.priority)} fullWidth sx={{ my: 1 }}>
                         <InputLabel id="demo-simple-select-label">Tipe</InputLabel>
                         <Select
                             labelId="demo-simple-select-label"
                             id="demo-simple-select"
-                            value={age}
+                            value={formik.values.priority}
                             label="Tipe"
-                            onChange={handleChange}
+                            onChange={e => formik.setFieldValue('priority', e.target.value)}
                         >
-                            <MenuItem value={10}>1 (primer)</MenuItem>
-                            <MenuItem value={20}>2 (sekunder)</MenuItem>
-                            <MenuItem value={30}>3 (tersier)</MenuItem>
+                            <MenuItem value={'1'}>1</MenuItem>
+                            <MenuItem value={'2'}>2</MenuItem>
+                            <MenuItem value={'3'}>3</MenuItem>
                         </Select>
+                        <FormHelperText>{formik.touched.priority && formik.errors.priority}</FormHelperText>
                     </FormControl>
-                    <FormControl fullWidth sx={{ my: 1 }}>
+                    <FormControl error={formik.touched.type && Boolean(formik.errors.type)} fullWidth sx={{ my: 1 }}>
                         <InputLabel id="demo-simple-select-label">Kategori</InputLabel>
                         <Select
                             labelId="demo-simple-select-label"
                             id="demo-simple-select"
-                            value={age}
+                            value={formik.values.type}
                             label="Kategori"
-                            onChange={handleChange}
+                            onChange={e => formik.setFieldValue('type', e.target.value)}
                         >
-                            <MenuItem value={10}>Pemasukan</MenuItem>
-                            <MenuItem value={20}>Pengeluaran</MenuItem>
+                            <MenuItem value={'Pemasukan'}>Pemasukan</MenuItem>
+                            <MenuItem value={'Pengeluaran'}>Pengeluaran</MenuItem>
                         </Select>
+                        <FormHelperText>{formik.touched.type && formik.errors.type}</FormHelperText>
                     </FormControl>
                     <FormControl fullWidth sx={{ my: 1 }}>
                         <TextField
                             autoFocus
-                            id="description"
-                            label="Description"
-                            type="description"
-                            fullWidth
+                            id="name"
+                            label="Name"
+                            type="text"
+                            fullWidth                            
+                            value={formik.values.name}
+                            onChange={formik.handleChange}
+                            error={formik.touched.name && Boolean(formik.errors.name)}
+                            helperText={formik.touched.name && formik.errors.name}
                         />
                     </FormControl>
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleClose}>Cancel</Button>
-                    <Button onClick={handleClose}>Subscribe</Button>
+                    <Button type="submit">Add New</Button>
                 </DialogActions>
-            </Dialog>
-        </div>
+            </Box>
+        </Dialog>
     );
 }
+
+export function EditFormDialog({ initialValue, openDialog, setOpenDialog }: any) {
+    const [initVal, setInitVal] = React.useState({
+        id: '',
+        priority: '',
+        type: '',
+        name: '',
+      })
+    const handleClose = () => {
+        formik.resetForm()
+        setOpenDialog(false);
+    };
+
+    const validationSchema = yup.object({
+        type: yup
+          .string()
+          .required('Type cannot be empty'),
+        priority: yup
+          .string()
+          .required('Priority cannot be empty'),
+        name: yup
+          .string()
+          .required('Name cannot be empty'),
+      });
+    
+      const formik = useFormik({
+        initialValues: initVal,
+        validationSchema: validationSchema, 
+        onSubmit: values => {
+            console.log('passed')
+        },
+      });
+
+    React.useEffect(()=>{
+        if(openDialog){
+            console.log(initialValue)
+            formik.setValues(initialValue)
+        }
+    }, [openDialog])
+    return (
+        <Dialog open={openDialog} onClose={handleClose} fullWidth maxWidth="xs">
+            <Box component="form" onSubmit={formik.handleSubmit} noValidate sx={{ mt: 1 }}>
+                <DialogTitle>Edit Category</DialogTitle>
+                <DialogContent>
+                   <FormControl error={formik.touched.priority && Boolean(formik.errors.priority)} fullWidth sx={{ my: 1 }}>
+                        <InputLabel id="demo-simple-select-label">Tipe</InputLabel>
+                        <Select
+                            labelId="demo-simple-select-label"
+                            id="demo-simple-select"
+                            value={formik.values.priority}
+                            label="Tipe"
+                            onChange={e => formik.setFieldValue('priority', e.target.value)}
+                        >
+                            <MenuItem value={'1'}>1</MenuItem>
+                            <MenuItem value={'2'}>2</MenuItem>
+                            <MenuItem value={'3'}>3</MenuItem>
+                        </Select>
+                        <FormHelperText>{formik.touched.priority && formik.errors.priority}</FormHelperText>
+                    </FormControl>
+                    <FormControl error={formik.touched.type && Boolean(formik.errors.type)} fullWidth sx={{ my: 1 }}>
+                        <InputLabel id="demo-simple-select-label">Kategori</InputLabel>
+                        <Select
+                            labelId="demo-simple-select-label"
+                            id="demo-simple-select"
+                            value={formik.values.type}
+                            label="Kategori"
+                            onChange={e => formik.setFieldValue('type', e.target.value)}
+                        >
+                            <MenuItem value={'Pemasukan'}>Pemasukan</MenuItem>
+                            <MenuItem value={'Pengeluaran'}>Pengeluaran</MenuItem>
+                        </Select>
+                        <FormHelperText>{formik.touched.type && formik.errors.type}</FormHelperText>
+                    </FormControl>
+                    <FormControl fullWidth sx={{ my: 1 }}>
+                        <TextField
+                            autoFocus
+                            id="name"
+                            label="Name"
+                            type="text"
+                            fullWidth                            
+                            value={formik.values.name}
+                            onChange={formik.handleChange}
+                            error={formik.touched.name && Boolean(formik.errors.name)}
+                            helperText={formik.touched.name && formik.errors.name}
+                        />
+                    </FormControl>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleClose}>Cancel</Button>
+                    <Button type="submit">Save</Button>
+                </DialogActions>
+            </Box>
+        </Dialog>
+    );
+}
+

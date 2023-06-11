@@ -6,16 +6,25 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import BarChartIcon from '@mui/icons-material/BarChart';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import ReceiptIcon from '@mui/icons-material/Receipt';
+import ExpandLess from '@mui/icons-material/ExpandLess';
+import ExpandMore from '@mui/icons-material/ExpandMore';
+import PersonIcon from '@mui/icons-material/Person';
 import TuneIcon from '@mui/icons-material/Tune';
 import { useRouter } from 'next/router';
-import { List } from '@mui/material';
 import { useSupabaseClient } from '@supabase/auth-helpers-react';
+import List from '@mui/material/List';
+import Collapse from '@mui/material/Collapse';
 
 export function MainListItem() {
+  const [open, setOpen] = React.useState(true);
+
+  const handleClick = () => {
+    setOpen(!open);
+  };
   const router = useRouter()
 
   return (
-    <List style={{ width: "300px" }} sx={{ flex: 1 }}>
+    <List style={{ width: "250px" }} sx={{ flex: 1 }}>
       <ListItemButton onClick={() => router.push('/app/dashboard')}>
         <ListItemIcon>
           <BarChartIcon />
@@ -33,13 +42,24 @@ export function MainListItem() {
           <AccountBalanceWalletIcon />
         </ListItemIcon>
         <ListItemText primary="Wallet Account" />
-      </ListItemButton>
-      <ListItemButton onClick={() => router.push('/app/setting')}>
+      </ListItemButton>      
+      <ListItemButton onClick={handleClick}>
         <ListItemIcon>
-          <TuneIcon />
+          <PersonIcon />
         </ListItemIcon>
-        <ListItemText primary="Setting" />
+        <ListItemText primary="Profile" />
+        {open ? <ExpandLess /> : <ExpandMore />}
       </ListItemButton>
+      <Collapse in={open} timeout="auto" unmountOnExit>
+        <List component="div" disablePadding>
+          <ListItemButton sx={{ pl: 4 }} href="/app/setting" >
+            <ListItemIcon>
+              <TuneIcon />
+            </ListItemIcon>
+            <ListItemText primary="Category" />
+          </ListItemButton>
+        </List>
+      </Collapse>
     </List>
   )
 }
@@ -47,7 +67,7 @@ export function SecondaryListItems() {
   const supabaseClient = useSupabaseClient()  
   const router = useRouter()
   return (
-    <List style={{ width: "300px" }} >
+    <List style={{ width: "250px" }} >
       <ListItemButton>
         <ListItemIcon>
           <LogoutIcon />
