@@ -28,6 +28,7 @@ import * as yup from 'yup';
 import { useFormik } from 'formik';
 import FormHelperText from "@mui/material/FormHelperText";
 import { useRouter } from "next/router";
+import DialogContentText from "@mui/material/DialogContentText";
 
 export default function ProfilePage() {
 
@@ -60,11 +61,11 @@ function PrimaryListItem({  }: any) {
         type: '',
         name: '',
       });
-    const [openDialog, setOpenDialog] = React.useState(false);
-    React.useEffect(() => {
+      const [openEditDialog, setOpenEditDialog] = React.useState(false);
+      const [openDeleteDialog, setOpenDeleteDialog] = React.useState(false);
+      React.useEffect(() => {
         async function loadData() {
             const { data } = await supabaseClient.from('category').select('*')
-            console.log(data)
             setData(data)
 
             
@@ -73,10 +74,15 @@ function PrimaryListItem({  }: any) {
         loadData()
     }, [])
 
-    const openEditDialog = (key: any) => {
+    const handleOpenEditDialog = (key: any) => {
         const {id, priority, type, name } = data[key]
         setValue({id, priority, type, name,})
-        setOpenDialog(true)
+        setOpenEditDialog(true)
+    }
+    const handleOpenDeleteDialog = (key: any) => {
+        const {id, priority, type, name } = data[key]
+        setValue({id, priority, type, name,})
+        setOpenDeleteDialog(true)
     }
     return (
         <Box sx={{ mx: { md: '25px' } }}>
@@ -86,10 +92,10 @@ function PrimaryListItem({  }: any) {
                         <ListItem>
                             <ListItemText primary={item.name} secondary={`Priority: ${item.priority}`} />
                             <Box sx={{ mr: { sm: '5px', md: '15px' } }}>
-                                <IconButton onClick={(e) => openEditDialog(key)} edge="end" aria-label="delete" sx={{ mr: '5px' }}>
+                                <IconButton onClick={(e) => handleOpenEditDialog(key)} edge="end" aria-label="delete" sx={{ mr: '5px' }}>
                                     <EditOutlinedIcon />
                                 </IconButton>
-                                <IconButton edge="end" aria-label="delete">
+                                <IconButton onClick={e => handleOpenDeleteDialog(key)} edge="end" aria-label="delete">
                                     <DeleteOutlineOutlinedIcon />
                                 </IconButton>
                             </Box>
@@ -98,7 +104,8 @@ function PrimaryListItem({  }: any) {
 
                 }
             </List>
-            <EditFormDialog supabaseClient={supabaseClient} initialValue={value} openDialog={openDialog} setOpenDialog={setOpenDialog} />
+            <EditFormDialog supabaseClient={supabaseClient} initialValue={value} openDialog={openEditDialog} setOpenDialog={setOpenEditDialog} />
+            <DeleteFormDialog supabaseClient={supabaseClient} openDialog={openDeleteDialog} initialValue={value} setOpenDialog={setOpenDeleteDialog} />
 
         </Box>
     )
@@ -199,7 +206,7 @@ export function AddFormDialog({ supabaseClient, openDialog, setOpenDialog }: any
     );
 }
 
-export function EditFormDialog({ supabaseClient,initialValue, openDialog, setOpenDialog }: any) {
+export function EditFormDialog({ supabaseClient, initialValue, openDialog, setOpenDialog }: any) {
     const router = useRouter()
     const [initVal, setInitVal] = React.useState({
         id: '',
@@ -241,7 +248,6 @@ export function EditFormDialog({ supabaseClient,initialValue, openDialog, setOpe
 
     React.useEffect(()=>{
         if(openDialog){
-            console.log(initialValue)
             formik.setValues(initialValue)
         }
     }, [openDialog])
@@ -298,6 +304,34 @@ export function EditFormDialog({ supabaseClient,initialValue, openDialog, setOpe
                     <Button type="submit">Save</Button>
                 </DialogActions>
             </Box>
+        </Dialog>
+    );
+}
+export function DeleteFormDialog({ supabaseClient, initialValue, openDialog, setOpenDialog }: any) {
+    const router = useRouter()
+    const handleClose = () => {
+        setOpenDialog(false);
+    };
+    const handleDelete = () => {
+        supabaseClient
+        .from('category')
+        .delete()
+        .eq('id', initialValue.id)
+        .then((res: { error: any; }) =>{
+            if(!res.error)
+            router.reload()
+        })
+    }
+    return (
+        <Dialog open={openDialog} onClose={handleClose} fullWidth maxWidth="xs">
+                <DialogTitle>Delete Confirmation</DialogTitle>
+                <DialogContent>
+                    <DialogContentText>Are You Sure Want to Delete the Item?</DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleClose}>Cancel</Button>
+                    <Button onClick={handleDelete}>Delete</Button>
+                </DialogActions>
         </Dialog>
     );
 }
