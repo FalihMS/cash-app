@@ -27,9 +27,11 @@ import MenuItem from "@mui/material/MenuItem";
 import * as yup from 'yup';
 import { useFormik } from 'formik';
 import FormHelperText from "@mui/material/FormHelperText";
+import { useRouter } from "next/router";
 
 export default function ProfilePage() {
 
+    const supabaseClient = useSupabaseClient()
     const [openDialog, setOpenDialog] = React.useState(false);
 
     return (
@@ -42,7 +44,7 @@ export default function ProfilePage() {
                     Add Category
                 </Fab>
             </Box>
-            <AddFormDialog openDialog={openDialog} setOpenDialog={setOpenDialog} />
+            <AddFormDialog supabaseClient={supabaseClient} openDialog={openDialog} setOpenDialog={setOpenDialog} />
         </AppShell>
     )
 }
@@ -64,6 +66,8 @@ function PrimaryListItem({  }: any) {
             const { data } = await supabaseClient.from('category').select('*')
             console.log(data)
             setData(data)
+
+            
         }
         // Only run query once user is logged in.
         loadData()
@@ -94,13 +98,14 @@ function PrimaryListItem({  }: any) {
 
                 }
             </List>
-            <EditFormDialog initialValue={value} openDialog={openDialog} setOpenDialog={setOpenDialog} />
+            <EditFormDialog supabaseClient={supabaseClient} initialValue={value} openDialog={openDialog} setOpenDialog={setOpenDialog} />
 
         </Box>
     )
 }
 
-export function AddFormDialog({ openDialog, setOpenDialog }: any) {
+export function AddFormDialog({ supabaseClient, openDialog, setOpenDialog }: any) {
+    const router = useRouter()
     const [initVal, setInitVal] = React.useState({
         priority: '',
         type: '',
@@ -127,7 +132,13 @@ export function AddFormDialog({ openDialog, setOpenDialog }: any) {
         initialValues: initVal,
         validationSchema: validationSchema, 
         onSubmit: values => {
-            console.log('passed')
+            supabaseClient
+                .from('category')
+                .insert(values)
+                .then((res: { error: any; }) =>{
+                    if(!res.error)
+                    router.reload()
+                })
         },
       });
 
@@ -188,7 +199,8 @@ export function AddFormDialog({ openDialog, setOpenDialog }: any) {
     );
 }
 
-export function EditFormDialog({ initialValue, openDialog, setOpenDialog }: any) {
+export function EditFormDialog({ supabaseClient,initialValue, openDialog, setOpenDialog }: any) {
+    const router = useRouter()
     const [initVal, setInitVal] = React.useState({
         id: '',
         priority: '',
@@ -216,7 +228,14 @@ export function EditFormDialog({ initialValue, openDialog, setOpenDialog }: any)
         initialValues: initVal,
         validationSchema: validationSchema, 
         onSubmit: values => {
-            console.log('passed')
+            supabaseClient
+            .from('category')
+            .update(values)
+            .eq('id', values.id)
+            .then((res: { error: any; }) =>{
+                if(!res.error)
+                router.reload()
+            })
         },
       });
 
